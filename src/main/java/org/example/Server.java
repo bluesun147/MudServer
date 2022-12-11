@@ -14,7 +14,7 @@ import java.util.*;
 
 // chatServer5 -> 3에다가 newChatServer 적용시키기 (hashmap)
 // https://blog.naver.com/PostView.nhn?blogId=duddnddl9&logNo=220614912095
-public class chatServer {
+public class Server {
 
 
     // 시작 시 포트 설정하고 서버 소켓 만든 뒤 while문 안에서
@@ -190,15 +190,15 @@ class ServerThread extends Thread {
 
                     ///////////////////////////////////////////////////////
 
-                    // 1초에 한번씩 명령 랜덤 수행
-                    case "bot":
-                        execute.bot();
+                    case "attack":
+                        execute.attack();
                         break;
 
                     ///////////////////////////////////////////////////////
 
-                    case "attack":
-                        execute.attack();
+                    // 1초에 한번씩 명령 랜덤 수행
+                    case "bot":
+                        execute.bot();
                         break;
 
                     ///////////////////////////////////////////////////////
@@ -262,7 +262,7 @@ class ServerThread extends Thread {
 
                 jsonGreeting.put("fromServerJsonKey", "명령어를 입력하세요");
                 writer.println(jsonGreeting);
-                System.out.println(name + " : " + execution + " 실행"); // 사용자 3명 접속 시 3번 찍힘
+                System.out.println(name + " : " + execution + " 입력"); // 사용자 3명 접속 시 3번 찍힘
             }
 
             /*input.close();
