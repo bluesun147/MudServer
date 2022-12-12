@@ -34,11 +34,11 @@ public class Monster {
         }
         String[] monsterArr = monsterList.toArray(new String[monsterList.size()]); // 몬스터 이름 배열
 
-        for (int i = 0; i < monsterArr.length; i++) {
+        for (String monster : monsterArr) {
 
             // 몬스터 위치
-            String monsterX = jedis.hget("monster:" + monsterArr[i] + ":space", "X");
-            String monsterY = jedis.hget("monster:" + monsterArr[i] + ":space", "Y");
+            String monsterX = jedis.hget("monster:" + monster + ":space", "X");
+            String monsterY = jedis.hget("monster:" + monster + ":space", "Y");
 
             String plusMessage = ""; // 추가로 보낼 메시지
 
@@ -50,47 +50,50 @@ public class Monster {
             }
             String userArr[] = userList.toArray(new String[userList.size()]); // 유저 이름 배열
 
-            for (int j = 0; j < userArr.length; j++) {
+            for (String user : userArr) {
+                Object obj = hm.get(user);
+                if (obj != null) { // 몬스터가 접속한 유저만 공격
 
-                String userX = jedis.hget("user:" + userArr[j] + ":space", "X");
-                String userY = jedis.hget("user:" + userArr[j] + ":space", "Y");
+                    String userX = jedis.hget("user:" + user + ":space", "X");
+                    String userY = jedis.hget("user:" + user + ":space", "Y");
 
-                int monsterStr = Integer.parseInt(jedis.get("monster:" + monsterArr[j] + ":str"));
+                    int monsterStr = Integer.parseInt(jedis.get("monster:" + monster + ":str"));
 
-                int userXInt = Integer.parseInt(userX);
-                int userYInt = Integer.parseInt(userY);
+                    int userXInt = Integer.parseInt(userX);
+                    int userYInt = Integer.parseInt(userY);
 
-                // 몬스터의 9칸 범위내에 있는 유저가 있으면 체력 감소시킴
-                if (((userXInt == Integer.parseInt(monsterX)) || (userXInt == Integer.parseInt(monsterX) - 1) || (userXInt == Integer.parseInt(monsterX) + 1))
-                        && ((userYInt == Integer.parseInt(monsterY)) || (userYInt == Integer.parseInt(monsterY) - 1) || (userYInt == Integer.parseInt(monsterY) + 1))) {
-                    // 유저 있다면 체력 감소시킴
-                    jedis.incrBy("user:" + userArr[j] + ":hp", -1 * monsterStr);
+                    // 몬스터의 9칸 범위내에 있는 유저가 있으면 체력 감소시킴
+                    if (((userXInt == Integer.parseInt(monsterX)) || (userXInt == Integer.parseInt(monsterX) - 1) || (userXInt == Integer.parseInt(monsterX) + 1))
+                            && ((userYInt == Integer.parseInt(monsterY)) || (userYInt == Integer.parseInt(monsterY) - 1) || (userYInt == Integer.parseInt(monsterY) + 1))) {
+                        // 유저 있다면 체력 감소시킴
+                        System.out.println("몬스터 : 공격!");
+                        jedis.decrBy("user:" + user + ":hp", monsterStr);
 
-                    String userHp = jedis.get("user:" + userArr[j] + ":hp");
-                    // 유저 사망
-                    if (Integer.parseInt(userHp) <= 0) {
-                        System.out.println(userArr[j] + "유저 사망");
+                        String userHp = jedis.get("user:" + user + ":hp");
+                        // 유저 사망
+                        if (Integer.parseInt(userHp) <= 0) {
+                            System.out.println(user + "유저 사망");
 
-                        plusMessage += "\n" + userArr[j] + " 사망!";
+                            plusMessage += "\n" + user + " 사망!";
 
-                        jo.put("fromServerJsonKey", monsterArr[i] + "이 " + userArr[j] + "을 공격해서 데미지 " + monsterStr + "을 가했습니다. 유저 hp : " + userHp + plusMessage);
-                        broadcast(jo.toString());
+                            jo.put("fromServerJsonKey", monster + "이 " + user + "을 공격해서 데미지 " + monsterStr + "을 가했습니다. 유저 hp : " + userHp + plusMessage);
+                            broadcast(jo.toString());
 
-                        jedis.del("user:" + userArr[j]); // 이름
-                        jedis.del("user:" + userArr[j] + ":hp"); // hp
-                        jedis.del("user:" + userArr[j] + ":str"); // str
-                        jedis.hdel("user:" + userArr[j] + ":space", "X");
-                        jedis.hdel("user:" + userArr[j] + ":space", "Y"); // 좌표
-                        jedis.hdel("user:" + userArr[j] + ":potions", "hpPotion");
-                        jedis.hdel("user:" + userArr[j] + ":potions", "strPotion"); // 포션 삭제
+                            jedis.del("user:" + user); // 이름
+                            jedis.del("user:" + user + ":hp"); // hp
+                            jedis.del("user:" + user + ":str"); // str
+                            jedis.hdel("user:" + user + ":space", "X");
+                            jedis.hdel("user:" + user + ":space", "Y"); // 좌표
+                            jedis.hdel("user:" + user + ":potions", "hpPotion");
+                            jedis.hdel("user:" + user + ":potions", "strPotion"); // 포션 삭제
 
-                    }
-                    else {
-                        // 이미 죽어서 이름 삭제됐기 때문에 사망은 안뜨는거. 메시지 전송을 먼저 해야 함.
-                        // 모든 클라에게 메시지 전송!!!!
-                        ////// 이게 broadcast
-                        jo.put("fromServerJsonKey", monsterArr[i] + "이 " + userArr[j] + "을 공격해서 데미지 " + monsterStr + "을 가했습니다. 유저 hp : " + userHp + plusMessage);
-                        broadcast(jo.toString());
+                        } else {
+                            // 이미 죽어서 이름 삭제됐기 때문에 사망은 안뜨는거. 메시지 전송을 먼저 해야 함.
+                            // 모든 클라에게 메시지 전송!!!!
+                            ////// 이게 broadcast
+                            jo.put("fromServerJsonKey", monster + "이 " + user + "을 공격해서 데미지 " + monsterStr + "을 가했습니다. 유저 hp : " + userHp + plusMessage);
+                            broadcast(jo.toString());
+                        }
                     }
                 }
             }
