@@ -41,69 +41,6 @@ public class Execute {
     List<String> monsterList = null;
     Set<String> monsters = null;
 
-    public void bot() {
-        System.out.println(name + " bot 실행");
-        TimerTask task = new TimerTask() {
-            @Override
-            public void run() {
-                // (int) (Math.random() * (최댓값-최소값+1) + 최소값)
-                // 최대 6, 최소 0
-                int num = (int) (Math.random() * (6 - 0 + 1) + 0); // 랜덤 숫자
-                switch (num) {
-                    case 0:
-                        jo.put("fromServerJsonKey", "attack 실행");
-                        writer.println(jo);
-                        attack();
-                        break;
-                    case 1:
-                        jo.put("fromServerJsonKey", "monsters 실행");
-                        writer.println(jo);
-                        monsters(); // 왜 두번 실행함???
-                        break;
-                    case 2:
-                        // 최대 3, 최소 -3
-                        int x = new Random().nextInt(7) - 3; // 랜덤 x 좌표
-                        int y = new Random().nextInt(7) - 3; // 랜덤 y 좌표
-                        jo.put("fromServerJsonKey", "move " + x + " " + y + " 실행");
-                        writer.println(jo);
-                        move(x, y);
-                        break;
-                    case 3:
-                        jo.put("fromServerJsonKey", "my 실행");
-                        writer.println(jo);
-                        my();
-                        break;
-                    case 4:
-                        jo.put("fromServerJsonKey", "users 실행");
-                        writer.println(jo);
-                        users(); // 이것도 두번 실행됨.
-                        break;
-
-                    case 5:
-                        jo.put("fromServerJsonKey", "useHpPotion 실행");
-                        writer.println(jo);
-                        useHpPotion(); // 이것도 두번 실행됨.
-                        break;
-
-                    case 6:
-                        jo.put("fromServerJsonKey", "useStrPotion 실행");
-                        writer.println(jo);
-                        useStrPotion(); // 이것도 두번 실행됨.
-                        break;
-
-                    default:
-                        jo.put("fromServerJsonKey", "default 실행");
-                        writer.println(jo);
-                        defaults();
-                        break;
-                }
-            }
-        };
-
-        // 1초마다 반복
-        new Timer().scheduleAtFixedRate(task, 3000L, 4 * 1000);
-    }
-
     // 사용자 9칸 내 모든 몬스터 체력 감소
     // 공격 발생 시 전체 클라이언트에세 알림 가게 함.
     public void attack() {
@@ -180,6 +117,69 @@ public class Execute {
             writer.println(jo);
             writer.flush();
         }
+    }
+
+    public void bot() {
+        System.out.println(name + " bot 실행");
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                // (int) (Math.random() * (최댓값-최소값+1) + 최소값)
+                // 최대 6, 최소 0
+                int num = (int) (Math.random() * (6 - 0 + 1) + 0); // 랜덤 숫자
+                switch (num) {
+                    case 0:
+                        jo.put("fromServerJsonKey", "attack 실행");
+                        writer.println(jo);
+                        attack();
+                        break;
+                    case 1:
+                        jo.put("fromServerJsonKey", "monsters 실행");
+                        writer.println(jo);
+                        monsters(); // 왜 두번 실행함???
+                        break;
+                    case 2:
+                        // 최대 3, 최소 -3
+                        int x = new Random().nextInt(7) - 3; // 랜덤 x 좌표
+                        int y = new Random().nextInt(7) - 3; // 랜덤 y 좌표
+                        jo.put("fromServerJsonKey", "move " + x + " " + y + " 실행");
+                        writer.println(jo);
+                        move(x, y);
+                        break;
+                    case 3:
+                        jo.put("fromServerJsonKey", "my 실행");
+                        writer.println(jo);
+                        my();
+                        break;
+                    case 4:
+                        jo.put("fromServerJsonKey", "users 실행");
+                        writer.println(jo);
+                        users(); // 이것도 두번 실행됨.
+                        break;
+
+                    case 5:
+                        jo.put("fromServerJsonKey", "useHpPotion 실행");
+                        writer.println(jo);
+                        useHpPotion(); // 이것도 두번 실행됨.
+                        break;
+
+                    case 6:
+                        jo.put("fromServerJsonKey", "useStrPotion 실행");
+                        writer.println(jo);
+                        useStrPotion(); // 이것도 두번 실행됨.
+                        break;
+
+                    default:
+                        jo.put("fromServerJsonKey", "default 실행");
+                        writer.println(jo);
+                        defaults();
+                        break;
+                }
+            }
+        };
+
+        // 1초마다 반복
+        new Timer().scheduleAtFixedRate(task, 3000L, 4 * 1000);
     }
 
     public void chat() {
@@ -363,7 +363,6 @@ public class Execute {
             }
         }
     }
-
 
     // 특정 사용자에게 보내는 메시지
     public void sendChat(String user, String message) {

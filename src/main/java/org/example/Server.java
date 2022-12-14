@@ -11,8 +11,6 @@ import java.net.Socket;
 import java.util.*;
 
 // https://wakestand.tistory.com/167
-
-// chatServer5 -> 3에다가 newChatServer 적용시키기 (hashmap)
 // https://blog.naver.com/PostView.nhn?blogId=duddnddl9&logNo=220614912095
 public class Server {
 
@@ -72,8 +70,6 @@ class ServerThread extends Thread {
             JSONObject jsonData = new JSONObject(readValue); // 클라에서 json으로 보낸 데이터를 파싱
             name = jsonData.getString("text");
 
-            // 억지로 json으로 바꾼거
-            // broadcast("{"+name + ": 님이 접속하였습니다.}");
             System.out.println("접속한 유저의 이름은 " + name + "입니다.");
             synchronized (hm) { // 여러 스레드가 HM 공유하기 때문에 동기화. 데이터 접근 동시에 일어날 수 있기 때문
                 // *** 중요 !
@@ -85,13 +81,27 @@ class ServerThread extends Thread {
                 Object obj = hm.get(name);
                 PrintWriter writer = (PrintWriter) obj;
 
-                // 이미 있는 유저라면
+                // 이미 있는 유저라면 ---> 여기서 중복 체크?
+                // 지금 접속한 나는 제외해야 하는데
                 if ("1".equals(jedis.get("user:" + name))) {
-                    JSONObject jsonWelcome = new JSONObject();
-                    jsonWelcome.put("fromServerJsonKey", name + "님 환영합니다.\n명령어를 입력하세요");
-                    pw.println(jsonWelcome);
 
-                    System.out.println(name + "님은 이미 회원가입한 유저입니다.");
+                    JSONObject jsonWelcome = new JSONObject();
+
+                    // 중복 로그인 처리
+                    // ---> 두번째로 접속한 애 말고 지금 접속한 나도 접속중이긴 한거니까
+                    // 무조건 카운트됨,,
+                    if (obj != null) {
+                        jsonWelcome.put("fromServerJsonKey", "중복접속!!!!!!!!");
+                        writer.println(jsonWelcome);
+                    }
+
+                    else {
+
+                        jsonWelcome.put("fromServerJsonKey", name + "님 환영합니다.\n명령어를 입력하세요");
+                        pw.println(jsonWelcome);
+
+                        System.out.println(name + "님은 이미 회원가입한 유저입니다.");
+                    }
                 } else { // 신규 유저라면
 
                     // 유저 등록
@@ -141,14 +151,10 @@ class ServerThread extends Thread {
             // 연결 확인용
             System.out.println("서버 : " + socket.getInetAddress() + " IP의 클라이언트와 연결되었습니다");
 
-
-            Monster monster = new Monster(hm, jo);
-
             // 몬스터 관리
-            // 1분마다 몬스터 카운트해서 10마리 될때까지 생성
-            // 몬스터 공격
-            monster.manageMonsterGenerate();
-            monster.manageMonsterAttack();
+            Monster monster = new Monster(hm, jo);
+            monster.manageMonsterGenerate(); // 1분마다 몬스터 카운트해서 10마리 될때까지 생성
+            monster.manageMonsterAttack(); // 몬스터 공격
 
             // OutputStream - 서버에서 클라이언트로 메세지 보내기
             OutputStream out = socket.getOutputStream();
@@ -271,37 +277,10 @@ class ServerThread extends Thread {
             writer.close();
             socket.close();*/
 
-        } catch (Exception e) {
-            e.printStackTrace(); // 예외처리
+        } catch (Exception e) { // 예외처리
+            System.out.println(name + "의 연결 끊어짐!!");
+
+//             e.printStackTrace();
         }
     }
-
-    // 특정 사용자에게 보내는 메시지
-    /*public void sendChat(String user, String message) {
-        JSONObject jo = new JSONObject();
-        String to = user;
-        Object obj = hm.get(to);
-        if (obj != null) {
-            PrintWriter pw = (PrintWriter) obj;
-            jo.put("fromServerJsonKey", name + " 님이 채팅을 보내셨습니다. :" + message);
-            pw.println(jo);
-            pw.flush();
-        }
-    }*/
-
-    // 접속한 모든 클라에세 문자열 전송하는 메소드
-    // 문자열 인자로 받고, hm에 저장되어 있는 pw를 하나씩 얻어 사용함.
-    // hm에는 접속한 모든 클라의 pw 있기 때문에 hm 으로 부터 pw 객체 얻어와
-    // 출력한다는 것은 접속한 모든 클라에게 문자열 전송과 같은 효과
-    /*public void broadcast(String msg) {
-        synchronized (hm) {
-            Collection collection = hm.values();
-            Iterator iter = collection.iterator();
-            while (iter.hasNext()) {
-                PrintWriter pw = (PrintWriter) iter.next();
-                pw.println(msg);
-                pw.flush();
-            }
-        }
-    }*/
 }
