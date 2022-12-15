@@ -79,13 +79,7 @@ public class Monster {
                             jo.put("fromServerJsonKey", monster + "이 " + user + "을 공격해서 데미지 " + monsterStr + "을 가했습니다. 유저 hp : " + userHp + plusMessage);
                             broadcast(jo.toString());
 
-                            jedis.del("user:" + user); // 이름
-                            jedis.del("user:" + user + ":hp"); // hp
-                            jedis.del("user:" + user + ":str"); // str
-                            jedis.hdel("user:" + user + ":space", "X");
-                            jedis.hdel("user:" + user + ":space", "Y"); // 좌표
-                            jedis.hdel("user:" + user + ":potions", "hpPotion");
-                            jedis.hdel("user:" + user + ":potions", "strPotion"); // 포션 삭제
+                            User.deleteUser(user); // 사망 유저 정보 삭제
 
                         } else {
                             // 이미 죽어서 이름 삭제됐기 때문에 사망은 안뜨는거. 메시지 전송을 먼저 해야 함.
