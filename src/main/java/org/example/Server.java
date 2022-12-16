@@ -88,8 +88,8 @@ class ServerThread extends Thread {
                     JSONObject jsonWelcome = new JSONObject();
 
                     // 중복 로그인 처리
-                    // ---> 두번째로 접속한 애 말고 지금 접속한 나도 접속중이긴 한거니까
-                    // 무조건 카운트됨,,
+                    // 지금은 신규 회원일 경우 메시지 안뜸.
+                    // 중복 접속일 경우만 뜨긴 하는데 기존애를 강제 종료 시켜야 함.
                     if (obj != null) {
                         jsonWelcome.put("fromServerJsonKey", "중복접속!!!!!!!!");
                         writer.println(jsonWelcome);
@@ -104,33 +104,7 @@ class ServerThread extends Thread {
                     }
                 } else { // 신규 유저라면
 
-                    // 유저 등록
-                    jedis.set("user:" + name, "1");
-
-                    // 초기 설정
-
-                    // (int) (Math.random() * (최댓값-최소값+1) + 최소값)
-                    // 위치 설정
-                    // 최대 29, 최소 0
-                    String userX = String.valueOf((int) (Math.random() * (29 - 0 + 1) + 0)); // 랜덤 x 좌표
-                    String userY = String.valueOf((int) (Math.random() * (29 - 0 + 1) + 0)); // 랜덤 y 좌표
-
-                    // 임의 위치 배정
-                    jedis.hset("user:" + name + ":space", "X", userX);
-                    jedis.hset("user:" + name + ":space", "Y", userY);
-
-                    // 체력 설정
-                    String hp = "30";
-                    jedis.set("user:" + name + ":hp", hp);
-                    // 공격력 설정
-                    String str = "3";
-                    jedis.set("user:" + name + ":str", str);
-
-                    // 포션 -> hset
-                    // 체력 회복 포션
-                    jedis.hset("user:" + name + ":potions", "hpPotion", "1");
-                    // 공격력 강화 포션
-                    jedis.hset("user:" + name + ":potions", "strPotion", "1");
+                    User.createUser(name); // 유저 생성
 
                     JSONObject jsonWelcome = new JSONObject();
                     jsonWelcome.put("fromServerJsonKey", name + "님 환영합니다.\n명령어를 입력하세요");
@@ -173,21 +147,19 @@ class ServerThread extends Thread {
                 // 클라에서 json으로 보내온 명령문 파싱
                 JSONObject jsonData = new JSONObject(readValue);
                 String execution = jsonData.getString("text");
-                /////////////////JSONObject jo = new JSONObject();
 
 
                 /*
                  < 명령문 >
                 - attack : 사용자 9칸 내 모든 몬스터 체력 감소
-                - bot :
-                - chat :  char 유저이름 메시지
+                - bot
+                - chat : chat 유저이름 메시지
                 - monsters : 모든 몬스터들 좌표
-                - move
-                - my
-                - users
-                - useHpPotion
-                - useStrPotion
-                - default
+                - move : move x y
+                - my : 나의 위치
+                - users : 전체 유저의 위치
+                - useHpPotion : 체력 포션 사용
+                - useStrPotion : 힘 포션 사용
                  */
 
                 Execute execute = new Execute(socket, name, br, hm, jo, jsonData, writer);
@@ -271,16 +243,25 @@ class ServerThread extends Thread {
                 System.out.println(name + " : " + execution + " 입력"); // 사용자 3명 접속 시 3번 찍힘
             }
 
-            /*input.close();
-            reader.close();
-            out.close();
-            writer.close();
-            socket.close();*/
-
         } catch (Exception e) { // 예외처리
             System.out.println(name + "의 연결 끊어짐!!");
+            TimerTask deleteTask = new TimerTask() {
+                @Override
+                public void run() {
+                    User.deleteUser(name);
+                    System.out.println(name + " 정보 삭제!");
+                }
+            };
 
-//             e.printStackTrace();
+            // 유저 연결 끊긴 후 5분 뒤 정보 삭제
+            // 5분 이내에 재접속하면 복원해야 함. --> 어떻게?
+            Timer timer = new Timer();
+            timer.schedule(deleteTask, 10 * 1000);
+//            while (true) {
+//                if (name.equals("tom")) { // 지금 연결 되어있는지 한번 더 확인.
+//                    timer.cancel();
+//                }
+//            }
         }
     }
 }
