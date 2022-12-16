@@ -83,26 +83,7 @@ public class Execute {
                 // 몬스터 사망
                 if (Integer.parseInt(monsterHp) <= 0) {
 
-                    plusMessage += "\n" + monsterArr[i] + " 사망!";
-
-                    jedis.del("monster:" + monsterArr[i]); // 이름
-                    jedis.del("monster:" + monsterArr[i] + ":hp"); // hp
-                    jedis.del("monster:" + monsterArr[i] + ":str"); // str
-                    jedis.hdel("monster:" + monsterArr[i] + ":space", "X");
-                    jedis.hdel("monster:" + monsterArr[i] + ":space", "Y"); // 좌표
-
-                    // 순서 바꿔서 비교하면 null 이라 오류 뜸!!
-                    // null.equals("aa") 이게 안되는듯
-                    if ("1".equals(jedis.hget("monster:" + monsterArr[i] + ":potions", "hpPotion"))) { // hp 포션 갖고있는 몬스터일때
-                        jedis.hdel("monster:" + monsterArr[i] + ":potions", "hpPotion"); // 몬스터 포션 삭제
-                        jedis.hincrBy("user:" + name + ":potions", "hpPotion", 1); // 유저에게 포션 추가
-                        plusMessage += "\n" + name + "이 hpPotion을 획득하였습니다!";
-                    }
-                    if ("1".equals(jedis.hget("monster:" + monsterArr[i] + ":potions", "strPotion"))) { // hp 포션 갖고있는 몬스터일때
-                        jedis.hdel("monster:" + monsterArr[i] + ":potions", "strPotion"); // 몬스터 포션 삭제
-                        jedis.hincrBy("user:" + name + ":potions", "strPotion", 1); // 유저에게 포션 추가
-                        plusMessage += "\n" + name + "이 strPotion을 획득하였습니다!";
-                    }
+                    plusMessage += Monster.delMonster(name, monsterArr[i], plusMessage); // 몬스터 사망 처리
                 }
 
                 // 모든 클라에게 메시지 전송!!!!
