@@ -136,8 +136,6 @@ class ServerThread extends Thread {
 
             // 클라이언트에게 연결되었다는 메세지 보내기
             JSONObject jsonGreeting = new JSONObject();
-            //jsonGreeting.put("fromServerJsonKey", "서버에 연결되었습니다! ID를 입력해 주세요!");
-            //writer.println(jsonGreeting);
 
             String readValue; // Client에서 보낸 값 저장
 
@@ -160,40 +158,31 @@ class ServerThread extends Thread {
                 - users : 전체 유저의 위치
                 - useHpPotion : 체력 포션 사용
                 - useStrPotion : 힘 포션 사용
+                - quit : 연결 종료
                  */
 
                 Execute execute = new Execute(socket, name, br, hm, jo, jsonData, writer);
 
                 switch (execution) {
 
-                    ///////////////////////////////////////////////////////
-
                     case "attack":
                         execute.attack();
                         break;
-
-                    ///////////////////////////////////////////////////////
 
                     // 1초에 한번씩 명령 랜덤 수행
                     case "bot":
                         execute.bot();
                         break;
 
-                    ///////////////////////////////////////////////////////
-
                     // chat "유저이름" "대화내용"
                     case "chat":
                         execute.chat();
                         break;
 
-                    ///////////////////////////////////////////////////////
-
                     // 모든 몬스터들 좌표
                     case "monsters":
                         execute.monsters();
                         break;
-
-                    ///////////////////////////////////////////////////////
 
                     // 유저 이동
                     case "move":
@@ -202,35 +191,25 @@ class ServerThread extends Thread {
                         execute.move(x, y);
                         break;
 
-                    ///////////////////////////////////////////////////////
-
                     // 나의 위치 출력
                     case "my":
                         execute.my();
                         break;
-
-                    ///////////////////////////////////////////////////////
 
                     // 모든 유저 위치 출력
                     case "users":
                         execute.users();
                         break;
 
-                    ///////////////////////////////////////////////////////
-
                     // hp 포션 사용
                     case "useHpPotion":
                         execute.useHpPotion();
                         break;
 
-                    ///////////////////////////////////////////////////////
-
                     // str 포션 사용
                     case "useStrPotion":
                         execute.useStrPotion();
                         break;
-
-                    ///////////////////////////////////////////////////////
 
                     // 잘못된 명령문
                     default:
@@ -256,12 +235,7 @@ class ServerThread extends Thread {
             // 유저 연결 끊긴 후 5분 뒤 정보 삭제
             // 5분 이내에 재접속하면 복원해야 함. --> 어떻게?
             Timer timer = new Timer();
-            timer.schedule(deleteTask, 10 * 1000);
-//            while (true) {
-//                if (name.equals("tom")) { // 지금 연결 되어있는지 한번 더 확인.
-//                    timer.cancel();
-//                }
-//            }
+            timer.schedule(deleteTask, 5 * 60 * 1000);
         }
     }
 }
