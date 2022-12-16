@@ -143,6 +143,30 @@ public class Monster {
         }
     }
 
+    public static String delMonster(String name, String monster, String plusMessage) {
+
+        plusMessage += "\n" + monster + " 사망!";
+
+        jedis.del("monster:" + monster); // 이름
+        jedis.del("monster:" + monster + ":hp"); // hp
+        jedis.del("monster:" + monster + ":str"); // str
+        jedis.hdel("monster:" + monster + ":space", "X");
+        jedis.hdel("monster:" + monster + ":space", "Y"); // 좌표
+
+        if ("1".equals(jedis.hget("monster:" + monster + ":potions", "hpPotion"))) { // hp 포션 갖고있는 몬스터일때
+            jedis.hdel("monster:" + monster + ":potions", "hpPotion"); // 몬스터 포션 삭제
+            jedis.hincrBy("user:" + name + ":potions", "hpPotion", 1); // 유저에게 포션 추가
+            plusMessage += "\n" + name + "이 hpPotion을 획득하였습니다!";
+        }
+        if ("1".equals(jedis.hget("monster:" + monster + ":potions", "strPotion"))) { // hp 포션 갖고있는 몬스터일때
+            jedis.hdel("monster:" + monster + ":potions", "strPotion"); // 몬스터 포션 삭제
+            jedis.hincrBy("user:" + name + ":potions", "strPotion", 1); // 유저에게 포션 추가
+            plusMessage += "\n" + name + "이 strPotion을 획득하였습니다!";
+        }
+
+        return plusMessage;
+    }
+
     // 몬스터 관리
     public void manageMonsterGenerate() {
         // 몬스터 체크 및 생성
